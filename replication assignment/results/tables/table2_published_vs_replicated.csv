@@ -1,0 +1,19 @@
+"column","outcome","statistic","published","replicated","match_at_3dp"
+"(1)","Has city-based voter ID","estimate",0.236,0.236,TRUE
+"(1)","Has city-based voter ID","std_error",0.019,0.019,TRUE
+"(1)","Has city-based voter ID","p_upper",0,0,TRUE
+"(1)","Has city-based voter ID","control_mean",0.161,0.161,TRUE
+"(1)","Has city-based voter ID","n_obs",2120,2120,TRUE
+"(1)","Has city-based voter ID","adj_r2",0.084,0.084,TRUE
+"(2)","Voted in city in 2019","estimate",0.203,0.203,TRUE
+"(2)","Voted in city in 2019","std_error",0.019,0.019,TRUE
+"(2)","Voted in city in 2019","p_upper",0,0,TRUE
+"(2)","Voted in city in 2019","control_mean",0.178,0.178,TRUE
+"(2)","Voted in city in 2019","n_obs",2120,2120,TRUE
+"(2)","Voted in city in 2019","adj_r2",0.065,0.065,TRUE
+"(3)","Likelihood of voting in city in future","estimate",0.031,0.031,TRUE
+"(3)","Likelihood of voting in city in future","std_error",0.009,0.009,TRUE
+"(3)","Likelihood of voting in city in future","p_upper",0,0,TRUE
+"(3)","Likelihood of voting in city in future","control_mean",0.856,0.856,TRUE
+"(3)","Likelihood of voting in city in future","n_obs",2120,2120,TRUE
+"(3)","Likelihood of voting in city in future","adj_r2",0.011,0.011,TRUE

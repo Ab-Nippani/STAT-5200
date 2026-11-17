@@ -1,0 +1,4 @@
+"outcome","observed_estimate","largest_permuted","ri_p_two_sided"
+"(1) Has city voter ID",0.2357771619038,0.0811237799676521,0
+"(2) Voted in city 2019",0.203349711259986,0.0715552347177585,0
+"(3) Likely to vote in future",0.0314493913458374,0.0316131415141011,5e-04
