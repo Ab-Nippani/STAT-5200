@@ -1,0 +1,415 @@
+---
+title: "Homework 3"
+author: "Abishek Nippani"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+output: pdf_document
+knit: (function(input, ...) {
+    rmarkdown::render(input,
+      output_dir  = "~/Library/CloudStorage/OneDrive-PennO365/Non-Coursework/Claude Code/2026 fall/applied ecotrix/hw",
+      output_file = "Homework3.pdf")
+  })
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, comment = "")
+options(digits = 4)
+```
+
+# Q1 (Reflection)
+
+## Are my answers in line with the solutions?
+
+Overall, yes. I did not get any of the graded questions wrong, but there are a few places where my answer took a different route from the solution or where my answer was weaker than it should have been.
+
+* **Q2 (conditional expectation): in line.**
+    * *Q2.1:* I derived $y\mid x \sim N\big(\mu_y + \rho\frac{\sigma_y}{\sigma_x}(x-\mu_x),\ \sigma_y^2(1-\rho^2)\big)$, which matches the solution.
+    * *Q2.2:* My linear projection $L(y\mid 1,x) = \mu_y + \rho\frac{\sigma_y}{\sigma_x}(x-\mu_x)$ also matches. I used the argument that because $E[y\mid x]$ is already linear in $x$, the best linear predictor must coincide with it. This is essentially the solution's "Way 2". I did not show "Way 1", which computes $\beta = E[x'x]^{-1}E[x'y]$ directly from the definition in the notes.
+    * *Q2.3:* I concluded that $u \sim N(0, \sigma_y^2(1-\rho^2))$ and that $u$ is independent of $x$. This matches the solution, including its optional mean-and-variance part. I got there through the conditional distribution of $y$ given $x$. The solution's main argument is simpler: $u$ is a linear combination of jointly normal variables, so it is normal.
+* **Q3 (linear projection): in line.** I wrote the normal equations in block form, solved the first row for $\beta_0$, substituted it into the second row, and recognised $\text{Var}(x)$ and $\text{Cov}(x,y)$. This is the same derivation as the solution's (1)–(5). I also added that $E[\tilde x'\tilde x]$ is nonsingular if and only if $\text{Var}(x)$ is.
+* **Q4 (asymptotic normality): in line.** All four parts match: $\text{Var}(\sqrt N(\bar y_N-\mu)) = \sigma^2$, $\text{Avar}(\sqrt N(\bar y_N-\mu)) = \sigma^2$, $\text{Avar}(\bar y_N) = \sigma^2/N$ (equal to the exact variance), and the asymptotic standard deviation $\sigma/\sqrt N$.
+* **Q5 (simulation): in line.**
+    * *Q5.1 and Q5.2:* My answers ($\text{Var}(y_i) = 44$ and $\text{Avar}(\bar y_{100}) = 0.44$) match.
+    * *Q5.3:* My Monte Carlo variance (0.429) is close to 0.44, as the solution requires.
+    * *Q5.4:* My skewness results (0.169, 0.073 and 0.031 for $N$ = 10, 100 and 1000) shrink towards zero as the solution expects, and I gave the same CLT explanation. I also compared them with the theoretical values $0.55/\sqrt N$.
+* **Q6 (delta-method paper): no model answer is given, but one criterion is questionable.** I chose Agostini, Brown and Roman (2010, *World Development*). The paper uses the term "delta method" in the sense from class (criteria 1–3). However, criterion 4 asks for a paper that *applies* the delta method. In this paper, the delta method is mentioned in the appendix as a way to compute the model-error component, while the reported standard errors come mainly from 200 simulation draws. I noted this in my answer, but I should have picked a paper where the delta method directly produces a reported standard error, or said clearly that the paper only partly meets criterion 4.
+
+## What I could have done better
+
+1. **Show the direct derivation in Q2.2.** My argument (the linear CE equals the LP) was correct, but it skipped the definition from the notes. Computing $\beta = E[x'x]^{-1}E[x'y]$ explicitly, as in the solution's "Way 1", would have shown that I can work with the definition itself rather than relying on a property.
+2. **Use the simplest argument in Q2.3.** "A linear combination of normal random variables is normal" is all the question needed. My route through the conditional distribution was longer than necessary, even though it was correct.
+3. **Choose the Q6 paper more carefully against all four criteria**, especially "applies the delta method".
+4. **Quantify Monte Carlo error.** In Q5.3, I wrote that 0.429 "should be close to" 0.44 but did not say how close is close enough. The Monte Carlo standard error of a sample variance based on $M = 1000$ draws is roughly $0.44\sqrt{2/1000} \approx 0.02$, so a difference of 0.011 is well within simulation noise. Stating this would have made the comparison rigorous.
+5. **Write more efficient simulation code.** My `gendata()` filled the matrix one row at a time in a loop. Generating the whole sample at once (`x <- rnorm(N, 1, 2); y <- 1 + x + rchisq(N, 20) - 20`) is shorter and much faster. This matters when $M = 10{,}000$ and $N = 1000$. I applied this in Q4 of this homework.
+
+# Q2 (Review question)
+
+The model is $y_i = x_i\beta + u_i$, $i = 1,\dots,N$, with $x_i$ a $1\times k$ row vector, and
+
+$$
+\hat\beta = \left(\sum_{i=1}^N x_i'x_i\right)^{-1}\left(\sum_{i=1}^N x_i'y_i\right).
+$$
+
+**Assumptions.**
+
+* **OLS1 (orthogonality / exogeneity):** $E[x_i'u_i] = 0$.
+* **OLS2 (rank condition):** $A \equiv E[x_i'x_i]$ is finite and has full rank $k$ (so $A^{-1}$ exists).
+* **Random sampling:** $(y_i, x_i)$ is i.i.d. over $i$.
+* Regularity (moment) conditions needed for the LLN/CLT: $B \equiv E[u_i^2 x_i'x_i]$ is finite, and for part 3 we also need $E\|x_i\|^4<\infty$ (so $\hat A$ and the quadratic term in $\hat u_i^2$ behave) and $E[u_i^2\|x_i\|^2]<\infty$; together these imply $E[|u_i|\,\|x_i\|^3]<\infty$ by Cauchy–Schwarz, which controls the cross term.
+
+## 1. Consistency
+
+Substitute $y_i = x_i\beta + u_i$:
+
+$$
+\hat\beta = \beta + \left(\frac{1}{N}\sum_{i=1}^N x_i'x_i\right)^{-1}\left(\frac{1}{N}\sum_{i=1}^N x_i'u_i\right).
+$$
+
+* Because $(y_i,x_i)$ is i.i.d., $x_i'x_i$ and $x_i'u_i$ are i.i.d. with finite means, so by the **weak law of large numbers (WLLN)**
+  $\frac{1}{N}\sum x_i'x_i \xrightarrow{p} A$ and $\frac{1}{N}\sum x_i'u_i \xrightarrow{p} E[x_i'u_i]$.
+* By **OLS1**, $E[x_i'u_i]=0$.
+* By **OLS2**, $A$ is nonsingular, so the matrix inverse is a continuous function at $A$. By the **continuous mapping theorem (Slutsky)**, $\left(\frac{1}{N}\sum x_i'x_i\right)^{-1} \xrightarrow{p} A^{-1}$ (and the inverse exists with probability approaching one).
+
+Hence $\hat\beta \xrightarrow{p} \beta + A^{-1}\cdot 0 = \beta$, so $\hat\beta$ is consistent.
+
+## 2. Asymptotic distribution
+
+$$
+\sqrt N(\hat\beta-\beta) = \left(\frac{1}{N}\sum_{i=1}^N x_i'x_i\right)^{-1}\left(\frac{1}{\sqrt N}\sum_{i=1}^N x_i'u_i\right).
+$$
+
+* $\{x_i'u_i\}$ is i.i.d. (**random sampling**), has mean zero (**OLS1**), and variance $E[u_i^2x_i'x_i] = B$ (finite by the moment condition). By the **Lindeberg–Lévy CLT**, $\frac{1}{\sqrt N}\sum x_i'u_i \xrightarrow{d} N(0, B)$.
+* From part 1 (**WLLN + OLS2**), $\left(\frac{1}{N}\sum x_i'x_i\right)^{-1} \xrightarrow{p} A^{-1}$.
+* By **Slutsky's theorem**,
+
+$$
+\sqrt N(\hat\beta - \beta) \xrightarrow{d} N\!\left(0,\; A^{-1}BA^{-1}\right), \qquad A = E[x_i'x_i],\; B = E[u_i^2 x_i'x_i].
+$$
+
+Note that no homoskedasticity assumption is used, so the asymptotic variance has the "sandwich" form. (Only if we additionally assumed $E[u_i^2 x_i'x_i] = \sigma^2 E[x_i'x_i]$ would it simplify to $\sigma^2A^{-1}$.)
+
+## 3. Consistent estimator of the asymptotic variance
+
+Let $\hat u_i = y_i - x_i\hat\beta$ and define
+
+$$
+\hat A = \frac{1}{N}\sum_{i=1}^N x_i'x_i, \qquad \hat B = \frac{1}{N}\sum_{i=1}^N \hat u_i^2\, x_i'x_i, \qquad \hat V = \hat A^{-1}\hat B\hat A^{-1}.
+$$
+
+* $\hat A \xrightarrow{p} A$ by the WLLN (i.i.d.), and $\hat A^{-1}\xrightarrow{p}A^{-1}$ by OLS2 and the CMT.
+* For $\hat B$, write $\hat u_i = u_i - x_i(\hat\beta-\beta)$, so
+  $\hat u_i^2 = u_i^2 - 2u_i x_i(\hat\beta-\beta) + (\hat\beta-\beta)'x_i'x_i(\hat\beta-\beta)$. Then $\frac1N\sum u_i^2x_i'x_i \xrightarrow{p} B$ by the WLLN, and the remaining terms are (products of) sample averages with finite limits (finite fourth moments) multiplied by $\hat\beta-\beta = o_p(1)$ (part 1), so they vanish. Hence $\hat B\xrightarrow{p} B$.
+* By the CMT, $\hat V \xrightarrow{p} A^{-1}BA^{-1}$.
+
+This is White's heteroskedasticity-robust variance estimator.
+
+## 4. Standard error
+
+From part 2, $\hat\beta \overset{a}{\sim} N(\beta, V/N)$, so the estimated asymptotic variance of $\hat\beta$ is
+
+$$
+\widehat{\text{Avar}}(\hat\beta) = \frac{\hat V}{N} = \left(\sum_{i=1}^N x_i'x_i\right)^{-1}\left(\sum_{i=1}^N \hat u_i^2 x_i'x_i\right)\left(\sum_{i=1}^N x_i'x_i\right)^{-1},
+$$
+
+and the (heteroskedasticity-robust) standard error of $\hat\beta_j$ is the square root of the $j$-th diagonal element:
+
+$$
+\text{se}(\hat\beta_j) = \sqrt{\left[\hat V/N\right]_{jj}}.
+$$
+
+# Q3 (Data question)
+
+```{r data}
+library(sandwich)   # for the robust (HC0) variance estimator
+
+data_path <- "/Users/nippani/Downloads/CPS85.txt"
+if (!file.exists(data_path)) data_path <- "CPS85.txt"   # fallback: same folder as this .Rmd
+cps <- read.csv(data_path)
+dim(cps)
+summary(cps[, c("logwage", "educ", "exper")])
+```
+
+## 1. Estimate the model
+
+$$
+\log(wage_i) = \beta_0 + \beta_1 educ_i + \beta_2 exper_i + \beta_3 exper_i^2 + u_i
+$$
+
+```{r q3-1}
+fit <- lm(logwage ~ educ + exper + I(exper^2), data = cps)
+summary(fit)
+
+# Heteroskedasticity-robust standard errors (Q2-3/Q2-4)
+V_rob <- vcovHC(fit, type = "HC0")
+cbind(estimate = coef(fit),
+      se_robust = sqrt(diag(V_rob)),
+      t_robust  = coef(fit) / sqrt(diag(V_rob)))
+b <- coef(fit)
+```
+
+All coefficients are statistically significant at any conventional level, with either conventional or robust standard errors. An additional year of schooling is associated with roughly a `r round(100*b["educ"], 1)`% higher wage, holding experience fixed (this is the log-point approximation; the exact percentage, $100(e^{\hat\beta_1}-1)$, is roughly `r round(100*(exp(b["educ"])-1), 1)`%, the figure used in Q3.5). The experience profile is concave ($\hat\beta_2>0$, $\hat\beta_3<0$): log wages rise with experience at a decreasing rate and peak at about $-\hat\beta_2/(2\hat\beta_3) =$ `r round(-b["exper"]/(2*b["I(exper^2)"]), 1)` years of experience.
+
+## 2. Q-Q plot of the residuals
+
+```{r q3-2, fig.width=6, fig.height=5}
+uhat <- resid(fit)
+qqnorm(uhat, main = "Normal Q-Q plot of OLS residuals")
+qqline(uhat, col = "red", lwd = 2)
+
+# Supporting numerical checks
+skew <- mean((uhat - mean(uhat))^3) / sd(uhat)^3
+kurt <- mean((uhat - mean(uhat))^4) / sd(uhat)^4
+c(skewness = skew, kurtosis = kurt)
+sw <- shapiro.test(uhat)
+c(W = round(unname(sw$statistic), 4), p.value = round(sw$p.value, 4))
+```
+
+The residual quantiles lie very close to the 45-degree reference line over essentially the whole range, with only minor deviations in the extreme tails. The sample skewness (`r round(skew, 3)`) is essentially zero and the kurtosis (`r round(kurt, 2)`) is close to the normal value of 3 (slightly thin-tailed), and the Shapiro–Wilk test does not reject normality (p = `r round(sw$p.value, 2)`). So it is reasonable to say $u_i$ looks approximately normally distributed here (taking the log of wages is what makes this so; raw wages are typically right-skewed).
+
+Either way, normality is **not a concern** for the later analysis. Our inference is based on the asymptotic results in Q2, which only require OLS1, OLS2, random sampling and finite moments. Normality of $u_i$ is needed only for *exact* finite-sample $t$ and $F$ distributions. With $N = `r nrow(cps)`$, the CLT delivers approximately normal $\hat\beta$ regardless of the distribution of $u_i$.
+
+## 3. The parameter of interest
+
+Raising education by one year while lowering experience by one year (age held fixed) changes the regressors by $\Delta educ = 1$, $\Delta exper = -1$, $\Delta exper^2 = (exper-1)^2 - exper^2 = 1-2\,exper$. If $u$ is independent of the regressors (so $E[e^{u}\mid educ, exper]$ is a constant that cancels), the *ratio* of expected wages is
+
+$$
+1+\frac{\theta}{100} = \frac{E[wage\mid educ+1, exper-1]}{E[wage\mid educ, exper]} = \exp\big(\beta_1-\beta_2+(1-2\,exper)\beta_3\big),
+$$
+
+so $\theta = 100\left[\exp\big(\beta_1-\beta_2+(1-2\,exper)\beta_3\big)-1\right]$.
+
+## 4. Estimator for $\theta$ and its consistency
+
+The plug-in estimator is
+
+$$
+\hat\theta(exper) = 100\left[\exp\big(\hat\beta_1-\hat\beta_2+(1-2\,exper)\hat\beta_3\big)-1\right].
+$$
+
+$\hat\theta = g(\hat\beta)$ with $g(\beta) = 100[\exp(\beta_1-\beta_2+(1-2\,exper)\beta_3)-1]$, which is continuous in $\beta$ for a fixed value of $exper$. Under OLS1, OLS2 and random sampling, $\hat\beta\xrightarrow{p}\beta$ (Q2-1). By the **continuous mapping theorem**, $\hat\theta = g(\hat\beta)\xrightarrow{p} g(\beta) = \theta$, so $\hat\theta$ is consistent.
+
+## 5. $\hat\theta$ for exper = 0, 5, ..., 55
+
+```{r q3-5}
+theta_hat <- function(b, exper) {
+  100 * (exp(b["educ"] - b["exper"] + (1 - 2 * exper) * b["I(exper^2)"]) - 1)
+}
+exper_grid <- seq(0, 55, by = 5)
+theta_tab <- data.frame(exper = exper_grid,
+                        theta_hat = as.numeric(theta_hat(b, exper_grid)))
+knitr::kable(theta_tab, digits = 2, col.names = c("exper", "theta-hat (%)"))
+
+# Benchmarks used in the discussion
+educ_only  <- 100 * (exp(b["educ"]) - 1)                         # pure educ effect
+crossover  <- (1 - b["exper"] / b["I(exper^2)"]) / 2              # peak of profile
+table(cut(cps$exper, c(-1, 10, 20, 30, 40, 50, 60)))              # data by exper range
+```
+
+```{r q3-5-plot, fig.width=6, fig.height=4}
+plot(theta_tab$exper, theta_tab$theta_hat, type = "b", pch = 19,
+     xlab = "Years of experience", ylab = expression(hat(theta) ~ "(%)"),
+     main = "Estimated return to an extra year of education\n(trading off one year of experience)")
+abline(h = educ_only, lty = 2, col = "grey40")
+```
+
+**Discussion.** $\hat\theta$ increases steadily with experience, from about `r round(theta_tab$theta_hat[1], 1)`% at zero experience to about `r round(tail(theta_tab$theta_hat, 1), 1)`% at 55 years. The reason is that $\theta$ combines two effects: the gain from one more year of school ($\hat\beta_1$, worth about `r round(educ_only, 1)`% on its own, the dashed line) and the loss from one fewer year of experience. Because the experience profile is concave, giving up a year of experience is costly early in a career (the marginal return to experience, $\hat\beta_2 + 2\hat\beta_3\,exper$, is large), which is why $\hat\theta$ is only about 5% for new entrants. As experience grows, the marginal value of experience shrinks, so less is lost and $\hat\theta$ rises. Past the peak of the profile (around `r round(crossover, 0)` years in this formula), losing a year of experience actually *raises* predicted log wages, so $\hat\theta$ exceeds the pure education return.
+
+Two caveats. First, the estimates at high experience rest heavily on the quadratic functional form: only a handful of workers have more than 40 years of experience (and just `r sum(cps$exper > 50)` have more than 50), so the values at 45–55 are largely an extrapolation of the curvature. Second, these are associations: if ability is omitted and correlated with education, OLS1 fails and $\hat\theta$ is not consistent for the causal return to schooling.
+
+## 6. How to compute standard errors and confidence intervals
+
+$\hat\theta$ is a smooth nonlinear function of $\hat\beta$, so I would use the **delta method**. Let $g(\beta) = 100[\exp(\beta_1-\beta_2+(1-2\,exper)\beta_3)-1]$, with gradient
+
+$$
+G(\beta) = \frac{\partial g}{\partial \beta'} = 100\exp\big(\beta_1-\beta_2+(1-2\,exper)\beta_3\big)\,\big[\,0,\;1,\;-1,\;1-2\,exper\,\big].
+$$
+
+From Q2-2, $\sqrt N(\hat\beta-\beta)\xrightarrow{d}N(0,V)$, so $\sqrt N(\hat\theta-\theta)\xrightarrow{d}N(0, G V G')$. Then:
+
+1. Estimate $V/N$ by the robust estimator $\widehat{\text{Avar}}(\hat\beta)$ from Q2-4.
+2. Evaluate the gradient at $\hat\beta$: $\hat G = G(\hat\beta)$.
+3. $\text{se}(\hat\theta) = \sqrt{\hat G\,\widehat{\text{Avar}}(\hat\beta)\,\hat G'}$.
+4. 95% CI: $\hat\theta \pm 1.96\,\text{se}(\hat\theta)$.
+5. Repeat for each value of $exper$ (only $\hat G$ changes).
+
+An alternative that avoids linearizing the exponential: $\lambda = \beta_1-\beta_2+(1-2\,exper)\beta_3 = c'\beta$ is linear, so $\text{se}(\hat\lambda)=\sqrt{c'\widehat{\text{Avar}}(\hat\beta)c}$. Form the CI $\hat\lambda\pm1.96\,\text{se}(\hat\lambda)$ and map the endpoints through the monotone function $100(e^{\lambda}-1)$. This interval is asymmetric and always respects $\theta>-100$. A (pairs) bootstrap is another option.
+
+## 7. (Optional) Standard errors and 95% CIs
+
+```{r q3-7}
+se_tab <- t(sapply(exper_grid, function(e) {
+  cvec  <- c(0, 1, -1, 1 - 2 * e)                    # lambda = c'beta
+  lam   <- sum(cvec * b)
+  th    <- 100 * (exp(lam) - 1)
+  G     <- 100 * exp(lam) * cvec                     # delta-method gradient
+  se_th <- sqrt(as.numeric(t(G) %*% V_rob %*% G))
+  se_l  <- sqrt(as.numeric(t(cvec) %*% V_rob %*% cvec))
+  c(exper = e, theta_hat = th, se = se_th,
+    lo_delta = th - 1.96 * se_th, hi_delta = th + 1.96 * se_th,
+    lo_trans = 100 * (exp(lam - 1.96 * se_l) - 1),
+    hi_trans = 100 * (exp(lam + 1.96 * se_l) - 1))
+}))
+knitr::kable(se_tab, digits = 2,
+             col.names = c("exper", "theta-hat", "se (delta)",
+                           "95% CI low (delta)", "95% CI high (delta)",
+                           "95% CI low (transformed)", "95% CI high (transformed)"))
+```
+
+```{r q3-7-plot, fig.width=6, fig.height=4}
+plot(se_tab[, "exper"], se_tab[, "theta_hat"], type = "b", pch = 19,
+     ylim = range(se_tab[, c("lo_delta", "hi_delta")]),
+     xlab = "Years of experience", ylab = expression(hat(theta) ~ "(%)"),
+     main = "Delta-method 95% confidence intervals (robust SEs)")
+arrows(se_tab[, "exper"], se_tab[, "lo_delta"], se_tab[, "exper"], se_tab[, "hi_delta"],
+       angle = 90, code = 3, length = 0.04)
+```
+
+The standard errors are smallest (about 0.9 percentage points) around 20–25 years of experience, near the middle of the data, and grow toward both ends, most noticeably at high experience, where $\hat\theta$ leans on the estimated curvature $\hat\beta_3$ and there are few observations. Every interval excludes zero, so the return to trading a year of experience for a year of education is significantly positive at all experience levels. Intervals at low and high experience do not overlap at all (e.g. [`r round(se_tab[1,"lo_delta"],1)`, `r round(se_tab[1,"hi_delta"],1)`] at 0 vs. [`r round(se_tab[12,"lo_delta"],1)`, `r round(se_tab[12,"hi_delta"],1)`] at 55, a gap of `r round(se_tab[12,"lo_delta"]-se_tab[1,"hi_delta"],1)` points), which is evidence that $\theta$ differs across experience levels, consistent with $\theta$ rising with experience. The delta-method and transformed intervals are nearly identical because $\hat\lambda$ is small, so $e^\lambda$ is close to linear over the relevant range.
+
+# Q4 (Monte Carlo simulation and coverage rate)
+
+Population: $y = 1 + x + 0.2x^2 + u$, $u\sim t_7$, $x\sim N(1,4)$ (mean 1, **variance 4**, so standard deviation 2). Throughout, the 95% CI for $\beta_1$ uses the asymptotic distribution from Q2-2, i.e. the robust (sandwich) standard error, $\hat\beta_1 \pm 1.96\,\text{se}(\hat\beta_1)$. For comparison I also record the CI based on the conventional homoskedasticity-only standard error, $\hat\sigma^2(X'X)^{-1}$.
+
+## 1–3. One data set
+
+```{r q4-funs}
+# One draw from the population; scale_fun multiplies the error
+draw_data <- function(N, scale_fun = function(x) 1) {
+  x <- rnorm(N, mean = 1, sd = 2)          # N(1, 4): variance 4
+  u <- rt(N, df = 7) * scale_fun(x)
+  y <- 1 + 1 * x + 0.2 * x^2 + u
+  list(y = y, x = x)
+}
+
+# OLS estimate, robust (HC0) and conventional SEs, and coverage indicators for beta_1
+ols_ci <- function(y, x, beta1 = 1, z = qnorm(0.975)) {
+  X    <- cbind(1, x, x^2)
+  N    <- length(y); k <- ncol(X)
+  XtXi <- solve(crossprod(X))
+  bhat <- as.vector(XtXi %*% crossprod(X, y))
+  e    <- as.vector(y - X %*% bhat)
+  V_r  <- XtXi %*% crossprod(X * e) %*% XtXi        # (X'X)^-1 (sum e^2 x'x) (X'X)^-1
+  V_h  <- sum(e^2) / (N - k) * XtXi                 # homoskedasticity-only
+  se_r <- sqrt(V_r[2, 2]); se_h <- sqrt(V_h[2, 2])
+  list(bhat = bhat, se_robust = se_r, se_homo = se_h,
+       ci_robust = bhat[2] + c(-1, 1) * z * se_r,
+       ci_homo   = bhat[2] + c(-1, 1) * z * se_h,
+       I_robust  = as.numeric(abs(bhat[2] - beta1) <= z * se_r),
+       I_homo    = as.numeric(abs(bhat[2] - beta1) <= z * se_h))
+}
+```
+
+```{r q4-single}
+set.seed(2026)
+N  <- 100
+d1 <- draw_data(N)                 # Y^(1)_N and X^(1)_N
+r1 <- ols_ci(d1$y, d1$x)
+
+# Q4-2: OLS estimate of (beta0, beta1, beta2)
+setNames(r1$bhat, c("beta0", "beta1", "beta2"))
+# Q4-3: 95% CI for beta1 (robust / asymptotic) and the indicator I^(1)
+r1$ci_robust
+r1$I_robust
+```
+
+## 4. Repeat M = 10,000 times
+
+```{r q4-mc}
+run_mc <- function(M, N, scale_fun = function(x) 1) {
+  out <- t(replicate(M, {
+    d <- draw_data(N, scale_fun)
+    r <- ols_ci(d$y, d$x)
+    c(b1 = r$bhat[2], I_robust = r$I_robust, I_homo = r$I_homo)
+  }))
+  out
+}
+
+set.seed(2026)
+M <- 10000
+mc1 <- run_mc(M, N = 100)
+cov1 <- colMeans(mc1[, c("I_robust", "I_homo")])
+cov1
+mean(mc1[, "b1"])   # average estimate of beta1 (true value 1)
+```
+
+```{r q4-mc-largeN}
+# Supplementary check: same design with N = 1000 (2,000 replications)
+set.seed(7)
+mc1_big  <- run_mc(2000, N = 1000)
+cov1_big <- colMeans(mc1_big[, c("I_robust", "I_homo")])
+cov1_big
+```
+
+**Empirical coverage rate (robust CI, N = 100): `r round(cov1["I_robust"], 4)`.**
+
+**Expectations.** I expected a coverage close to 95%, because every assumption behind the asymptotic distribution in Q2 holds in this design:
+
+* **Random sampling:** each $(y_i,x_i)$ is drawn independently from the same population.
+* **OLS1:** $u$ is drawn independently of $x$ and $E[u]=0$ ($t_7$ is symmetric about zero), so $E[u\mid x]=0$ and hence $E[x_i'u_i]=0$ for $x_i=(1,x,x^2)$.
+* **OLS2:** $1$, $x$ and $x^2$ are not perfectly collinear when $x$ is continuous, so $E[x_i'x_i]$ has full rank.
+* **Moments:** $t_7$ has finite moments up to order 6 (variance $7/5$) and the normal has all moments, so $B=E[u^2x_i'x_i]$ and the fourth moments needed for $\hat V$ are finite.
+* The errors are in fact homoskedastic, so the conventional standard error is also valid here.
+
+The answer *mostly* meets expectations. The robust interval covers $\beta_1$ in about `r round(100*cov1["I_robust"], 1)`% of samples, a bit below the nominal 95%. The conventional interval covers about `r round(100*cov1["I_homo"], 1)`%, very close to 95%. Normality of $u$ is not required (the $t_7$ errors are heavy-tailed, yet coverage is close to nominal), which is the point of the asymptotic approach. With $M=10{,}000$ replications the Monte Carlo standard error of a coverage rate near 95% is $\sqrt{0.95\cdot0.05/M}\approx$ `r round(sqrt(.95*.05/M), 4)`, so the robust coverage is significantly below 95% (about `r round((0.95-cov1["I_robust"])/sqrt(.95*.05/M), 0)` standard errors), while the conventional coverage is within simulation noise of 95%. The robust interval's shortfall is a **finite-sample** issue, not a failure of the theory. With $N=100$ and the regressor $x^2$, a few high-leverage observations (large $|x|$) dominate $\sum x_i'x_i$. Their OLS residuals are pulled toward zero, so $\hat B$ (HC0) underestimates $B$ and the robust standard errors are too small. The approximation improves with the sample size: with $N=1000$ the robust coverage is `r round(cov1_big["I_robust"], 3)`, essentially the nominal level. When homoskedasticity really holds, the conventional estimator is more efficient in small samples, which is why it does better here. HC0 is known to under-cover in small samples; HC3 or $t$ critical values are the usual small-sample refinements, though the question asks for the asymptotic interval.
+
+## 5. Heteroskedastic errors
+
+The modified model is $y = \beta_0 + \beta_1x + \beta_2x^2 + \frac{|x|}{2}u$ (the scaling factor is $|x|/2$, as written in the assignment).
+
+```{r q4-het}
+set.seed(2026)
+mc2  <- run_mc(M, N = 100, scale_fun = function(x) abs(x) / 2)
+cov2 <- colMeans(mc2[, c("I_robust", "I_homo")])
+cov2
+
+set.seed(7)
+mc2_big  <- run_mc(2000, N = 1000, scale_fun = function(x) abs(x) / 2)
+cov2_big <- colMeans(mc2_big[, c("I_robust", "I_homo")])
+cov2_big
+```
+
+```{r q4-summary}
+cov_tab <- data.frame(
+  design = c("Homoskedastic (Q4-4)", "Heteroskedastic (Q4-5)"),
+  robust_N100   = c(cov1["I_robust"], cov2["I_robust"]),
+  homo_N100     = c(cov1["I_homo"],   cov2["I_homo"]),
+  robust_N1000  = c(cov1_big["I_robust"], cov2_big["I_robust"]),
+  homo_N1000    = c(cov1_big["I_homo"],   cov2_big["I_homo"]))
+knitr::kable(cov_tab, digits = 3,
+             col.names = c("Design", "Robust, N=100", "Conventional, N=100",
+                           "Robust, N=1000", "Conventional, N=1000"))
+```
+
+**a) Empirical coverage rate.** With the robust (asymptotic, Q2-2) interval the coverage is **`r round(cov2["I_robust"], 4)`**. The conventional homoskedasticity-only interval covers only `r round(cov2["I_homo"], 4)`.
+
+**b) Comparison with Q4-4.** Coverage of the robust interval falls from `r round(cov1["I_robust"], 3)` to `r round(cov2["I_robust"], 3)`, and the conventional interval drops far more, from `r round(cov1["I_homo"], 3)` to `r round(cov2["I_homo"], 3)`.
+
+**c) Does it meet expectations?** Yes. The new error is $\tilde u = \frac{|x|}{2}u$. Since $u$ is independent of $x$ with mean zero, $E[\tilde u\mid x] = \frac{|x|}{2}E[u]=0$, so **OLS1 still holds**. **OLS2** and **random sampling** are unchanged, and the required moments are still finite ($E[\tilde u^2 x^4]$ involves $E[x^6]$ and $E[u^2]$, both finite). So OLS is still consistent and the asymptotic distribution in Q2-2 still applies. What changes is that $\text{Var}(\tilde u\mid x) = \frac{x^2}{4}\cdot\frac75$ now depends on $x$: the errors are **heteroskedastic**. Q2 never assumed homoskedasticity, so the sandwich variance $A^{-1}BA^{-1}$ is still the correct asymptotic variance and the robust interval remains valid. Its coverage approaches 95% as $N$ grows (`r round(cov2_big["I_robust"], 3)` at $N=1000$). It is somewhat further below 95% at $N=100$ than in Q4-4, because the error variance is largest exactly at the high-leverage observations (large $|x|$), which worsens the small-sample downward bias of HC0. In contrast, the conventional standard error $\hat\sigma^2(X'X)^{-1}$ relies on homoskedasticity, which is now violated, so it consistently estimates the wrong variance. Its coverage stays around `r round(cov2_big["I_homo"], 2)` even at $N=1000$; the problem does not go away with more data. This is exactly why the robust standard error from Q2 should be used.
+
+# Q5 (Paper question)
+
+## 1–2. Paper and citation
+
+Acemoglu, Daron, Simon Johnson, and James A. Robinson. 2001. "The Colonial Origins of Comparative Development: An Empirical Investigation." *American Economic Review* 91 (5): 1369–1401.
+
+The paper is published in the *American Economic Review*, uses the words "OLS"/"ordinary least squares" explicitly, and reports OLS estimates (Table 2) alongside its IV estimates.
+
+## 3. Main research question
+
+The paper asks whether differences in institutions, specifically how well property rights are protected against expropriation, cause the large differences in income per capita across countries. Because richer countries may simply be able to afford better institutions, the authors exploit the history of European colonization: where Europeans faced high mortality, they set up extractive institutions rather than settling, and those institutions persisted to the present. Using historical settler mortality as a source of variation in current institutions, they find that institutions have a large effect on income per capita, and that once institutions are controlled for, geographic factors such as latitude or being in Africa matter much less than previously thought.
+
+## 4. Empirical model in our notation
+
+I take the OLS specification in Table 2 for the base sample of former colonies:
+
+* $y_i$: log GDP per capita (PPP) in 1995 for country $i$.
+* $x_i = (1,\; \text{avexpr}_i)$, where $\text{avexpr}_i$ is the average protection against expropriation risk over 1985–1995 (an index from Political Risk Services; higher means more secure property rights).
+* Number of variables in $x_i$: $k=2$ (a constant and the expropriation index). Other columns add latitude and continent dummies.
+* Number of observations: $N = 64$ countries. (The estimated coefficient is 0.52 with standard error 0.06. The whole-world OLS version in the same table uses roughly 110 countries.)
+
+## 5. Do the authors state the underlying assumptions?
+
+Not formally. The paper does not list the OLS assumptions (exogeneity, rank condition, random sampling) or the conditions behind its standard errors. However, it discusses at length why the key exogeneity assumption $E[x_i'u_i]=0$ is likely to fail for OLS: reverse causality, omitted determinants of income, and measurement error in the institutions index. These concerns are its explicit motivation for moving to instrumental variables (settler mortality), and it states the corresponding exclusion restriction for the instrument.
+
+## 6. Why $E[x_iu_i] = 0$ is implausible here
+
+The error $u_i$ contains every determinant of 1995 income other than expropriation risk, and the most important of these, human capital, is almost certainly correlated with $\text{avexpr}_i$. Colonies where Europeans settled in large numbers received not only secure property rights but also European schooling, skills and technology, all of which raise income directly and therefore sit in $u_i$, making $E[\text{avexpr}_i\,u_i]>0$ and biasing OLS upward. Reverse causality pushes the same way: rich countries can afford well-paid judges, police and bureaucracies, so high income produces low expropriation risk rather than only the reverse. Worse, the index is a subjective rating produced by risk analysts who can observe a country's prosperity, so rich countries may be scored as "safe" partly because they are rich, which mechanically builds income into $x_i$. Finally, because the index measures only a sliver of the broader "institutions" concept with error, the measurement error is correlated with $x_i$ itself, so even the sign of the overall bias is unclear and the OLS coefficient of 0.52 cannot be read as the causal effect of institutions.
